@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Embedding 2.0 事例集 — スタジオパク</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #08080f;
+    --bg-card: #0f0f1a;
+    --bg-card-alt: #141428;
+    --border: #1e1e3a;
+    --accent: #6c5ce7;
+    --accent2: #00cec9;
+    --accent3: #fd79a8;
+    --gold: #fdcb6e;
+    --text: #e8e8f0;
+    --text-sub: #8888aa;
+    --text-dim: #555570;
+  }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  /* ===== Auth Screen ===== */
+  #auth-screen {
+    position: fixed; inset: 0; z-index: 9999;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+  }
+  #auth-screen.hidden { display: none; }
+  .auth-box {
+    text-align: center;
+    padding: 48px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--bg-card);
+    max-width: 400px; width: 90%;
+  }
+  .auth-box h2 { font-size: 18px; margin-bottom: 8px; color: var(--accent); }
+  .auth-box p { font-size: 13px; color: var(--text-sub); margin-bottom: 24px; }
+  .auth-box input {
+    width: 100%; padding: 12px 16px;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--bg); color: var(--text);
+    font-size: 15px; text-align: center;
+    outline: none; transition: border-color .2s;
+  }
+  .auth-box input:focus { border-color: var(--accent); }
+  .auth-box button {
+    margin-top: 16px; width: 100%; padding: 12px;
+    border: none; border-radius: 8px;
+    background: var(--accent); color: #fff;
+    font-size: 14px; font-weight: 700; cursor: pointer;
+    transition: opacity .2s;
+  }
+  .auth-box button:hover { opacity: .85; }
+  .auth-error { color: var(--accent3); font-size: 12px; margin-top: 12px; display: none; }
+
+  /* ===== Main ===== */
+  #main-content { display: none; }
+  #main-content.visible { display: block; }
+
+  /* Hero */
+  .hero {
+    padding: 80px 40px 60px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, #0d0d1e 0%, var(--bg) 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; inset: 0;
+    background:
+      radial-gradient(1px 1px at 20% 30%, rgba(108,92,231,.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 70%, rgba(0,206,201,.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 80% 20%, rgba(253,121,168,.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 40% 80%, rgba(253,203,110,.3) 0%, transparent 100%);
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-block; padding: 6px 16px;
+    border: 1px solid var(--accent); border-radius: 20px;
+    font-size: 11px; color: var(--accent); letter-spacing: 2px;
+    text-transform: uppercase; margin-bottom: 24px;
+  }
+  .hero h1 { font-size: 36px; font-weight: 900; margin-bottom: 12px; letter-spacing: -1px; }
+  .hero h1 span { background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero p { font-size: 15px; color: var(--text-sub); max-width: 640px; margin: 0 auto; }
+
+  /* Section */
+  .section { padding: 80px 40px; max-width: 1100px; margin: 0 auto; }
+  .section-label {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--text-dim); margin-bottom: 12px;
+  }
+  .section-label .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .section h2 { font-size: 28px; font-weight: 900; margin-bottom: 8px; }
+  .section .lead { font-size: 14px; color: var(--text-sub); margin-bottom: 40px; max-width: 700px; }
+
+  .divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+
+  /* Cards */
+  .case-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 36px;
+    margin-bottom: 32px;
+    transition: border-color .2s;
+  }
+  .case-card:hover { border-color: #333366; }
+  .case-card h3 { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+  .case-card .subtitle { font-size: 13px; color: var(--text-sub); margin-bottom: 24px; }
+
+  /* Tags */
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px; }
+  .tag {
+    padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 500;
+    background: rgba(108,92,231,.15); color: var(--accent); border: 1px solid rgba(108,92,231,.2);
+  }
+  .tag.teal { background: rgba(0,206,201,.12); color: var(--accent2); border-color: rgba(0,206,201,.2); }
+  .tag.pink { background: rgba(253,121,168,.12); color: var(--accent3); border-color: rgba(253,121,168,.2); }
+  .tag.gold { background: rgba(253,203,110,.12); color: var(--gold); border-color: rgba(253,203,110,.2); }
+
+  /* Info Grid */
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 24px; }
+  @media (max-width: 700px) { .info-grid { grid-template-columns: 1fr; } }
+  .info-box {
+    background: var(--bg-card-alt);
+    border: 1px solid var(--border);
+    border-radius: 10px; padding: 20px;
+  }
+  .info-box h4 { font-size: 12px; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
+  .info-box p { font-size: 13px; color: var(--text-sub); }
+  .info-box .highlight { color: var(--text); font-weight: 700; font-size: 22px; display: block; margin-bottom: 4px; }
+
+  /* Type Grid (SNS) */
+  .type-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 20px; }
+  @media (max-width: 700px) { .type-grid { grid-template-columns: repeat(2, 1fr); } }
+  .type-cell {
+    padding: 10px 12px; border-radius: 8px; text-align: center;
+    font-size: 12px; font-weight: 500;
+    background: var(--bg-card-alt); border: 1px solid var(--border);
+    transition: transform .15s;
+  }
+  .type-cell:hover { transform: scale(1.04); }
+  .type-cell .code { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-dim); display: block; margin-bottom: 2px; }
+  .type-cell .name { color: var(--accent); font-weight: 700; }
+
+  /* Axis */
+  .axis-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 20px 0; }
+  @media (max-width: 700px) { .axis-row { grid-template-columns: 1fr 1fr; } }
+  .axis-item {
+    text-align: center; padding: 16px 12px;
+    border-radius: 10px; background: var(--bg-card-alt);
+    border: 1px solid var(--border);
+  }
+  .axis-item .axis-label { font-size: 11px; color: var(--text-dim); margin-bottom: 4px; }
+  .axis-item .axis-values { font-size: 13px; color: var(--text); font-weight: 500; }
+  .axis-item .axis-values span { color: var(--accent2); }
+
+  /* Pipeline */
+  .pipeline { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 20px 0; }
+  .pipeline-step {
+    padding: 10px 16px; border-radius: 8px;
+    background: var(--bg-card-alt); border: 1px solid var(--border);
+    font-size: 12px; font-weight: 500; color: var(--text);
+  }
+  .pipeline-arrow { color: var(--text-dim); font-size: 16px; }
+  .pipeline-step.highlight-step { border-color: var(--accent); color: var(--accent); }
+
+  /* Results Table */
+  .results-table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 13px; }
+  .results-table th {
+    text-align: left; padding: 10px 14px; font-size: 11px;
+    color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase;
+    border-bottom: 1px solid var(--border); font-weight: 500;
+  }
+  .results-table td {
+    padding: 10px 14px; border-bottom: 1px solid #151530;
+    color: var(--text-sub);
+  }
+  .results-table tr:hover td { color: var(--text); }
+  .results-table .mono { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+  .results-table .good { color: var(--accent2); }
+  .results-table .score { color: var(--gold); font-weight: 700; }
+
+  /* Code Block */
+  .code-block {
+    background: #0d0d18; border: 1px solid var(--border);
+    border-radius: 10px; padding: 20px 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; line-height: 1.8;
+    color: var(--text-sub); overflow-x: auto;
+    margin: 20px 0;
+  }
+  .code-block .comment { color: #4a4a6a; }
+  .code-block .keyword { color: var(--accent); }
+  .code-block .string { color: var(--accent2); }
+  .code-block .number { color: var(--gold); }
+
+  /* Footer */
+  .footer {
+    padding: 40px; text-align: center;
+    font-size: 12px; color: var(--text-dim);
+    border-top: 1px solid var(--border);
+  }
+
+  /* ===== Gallery ===== */
+  .gallery-controls {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px;
+  }
+  .gallery-btn {
+    padding: 10px 24px; border: 1px solid var(--border); border-radius: 8px;
+    background: transparent; color: var(--text-sub); font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all .2s;
+  }
+  .gallery-btn:hover { border-color: var(--accent); color: var(--text); }
+  .gallery-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .gallery-btn.compare-btn { margin-left: auto; color: var(--gold); border-color: rgba(253,203,110,.3); }
+  .gallery-btn.compare-btn.active { background: #8B6914; border-color: #8B6914; color: #fff; }
+
+  .gallery-desc {
+    font-size: 13px; color: var(--text-sub); margin-bottom: 20px;
+    padding: 12px 16px; border-radius: 8px;
+    background: var(--bg-card-alt); border: 1px solid var(--border);
+  }
+
+  .gallery-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+  }
+  .gallery-card {
+    border-radius: 10px; overflow: hidden; background: var(--bg-card);
+    border: 1px solid var(--border); transition: transform .15s, box-shadow .15s;
+    cursor: pointer;
+  }
+  .gallery-card:hover {
+    transform: translateY(-3px); box-shadow: 0 8px 24px rgba(108,92,231,.15);
+  }
+  .gallery-card img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
+  .gallery-card-label {
+    padding: 10px 12px; font-size: 12px; color: var(--text-sub);
+    border-top: 1px solid var(--border);
+  }
+  .gallery-card-label strong { color: var(--accent); }
+
+  /* Compare rows */
+  .gallery-compare-header {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;
+    position: sticky; top: 0; background: var(--bg); z-index: 10;
+    padding: 12px 0; border-bottom: 1px solid var(--border); margin-bottom: 20px;
+  }
+  .gcol-title {
+    text-align: center; font-size: 13px; font-weight: 700;
+    padding: 10px 8px; border-radius: 8px;
+  }
+  .gcol-title.a { background: rgba(136,136,170,.1); color: var(--text-sub); }
+  .gcol-title.b { background: rgba(253,203,110,.08); color: var(--gold); }
+  .gcol-title.c { background: rgba(108,92,231,.1); color: var(--accent); }
+  .gallery-compare-row {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;
+    margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid #151530;
+  }
+  .gallery-compare-row:last-child { border-bottom: none; }
+  .grow-num {
+    grid-column: 1 / -1; text-align: center;
+    font-size: 12px; color: var(--text-dim); letter-spacing: 3px;
+    margin-bottom: 6px;
+  }
+  .gallery-compare-cell {
+    border-radius: 10px; overflow: hidden; background: var(--bg-card);
+    border: 1px solid var(--border); cursor: pointer;
+    transition: transform .15s;
+  }
+  .gallery-compare-cell:hover { transform: scale(1.02); }
+  .gallery-compare-cell img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
+  .gallery-compare-cell .gcell-label {
+    padding: 8px 10px; font-size: 11px; color: var(--text-dim);
+    border-top: 1px solid var(--border);
+  }
+  .gallery-compare-cell .gcell-label em { color: var(--accent); font-style: normal; font-weight: 700; }
+
+  /* Lightbox */
+  .lb-overlay {
+    display: none; position: fixed; inset: 0; z-index: 9990;
+    background: rgba(0,0,0,.94); justify-content: center; align-items: center;
+    cursor: zoom-out;
+  }
+  .lb-overlay.open { display: flex; }
+  .lb-overlay img {
+    max-width: 90vw; max-height: 88vh; border-radius: 10px;
+    box-shadow: 0 16px 64px rgba(0,0,0,.8);
+  }
+  .lb-info {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    color: var(--text-sub); font-size: 13px; background: rgba(0,0,0,.8);
+    padding: 8px 24px; border-radius: 20px; z-index: 9991;
+  }
+  .lb-nav {
+    position: fixed; top: 50%; transform: translateY(-50%);
+    font-size: 36px; color: #fff; cursor: pointer; z-index: 9991;
+    padding: 20px; user-select: none; opacity: .6; transition: opacity .2s;
+  }
+  .lb-nav:hover { opacity: 1; }
+  .lb-nav.prev { left: 12px; }
+  .lb-nav.next { right: 12px; }
+
+  /* Flow diagram */
+  .flow-diagram {
+    display: flex; flex-direction: column; gap: 0;
+    margin: 24px 0; max-width: 600px;
+  }
+  .flow-step {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 20px;
+    background: var(--bg-card-alt); border: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .flow-step:first-child { border-radius: 10px 10px 0 0; }
+  .flow-step:last-child { border-radius: 0 0 10px 10px; }
+  .flow-step + .flow-step { border-top: none; }
+  .flow-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; flex-shrink: 0;
+  }
+  .flow-num.teal { background: var(--accent2); }
+  .flow-num.pink { background: var(--accent3); }
+  .flow-num.gold { background: #b8860b; }
+
+  /* N1 persona box */
+  .n1-box {
+    background: linear-gradient(135deg, rgba(108,92,231,.08), rgba(0,206,201,.08));
+    border: 1px solid rgba(108,92,231,.25);
+    border-radius: 12px; padding: 24px; margin: 20px 0;
+  }
+  .n1-box h4 { color: var(--accent); font-size: 14px; margin-bottom: 4px; }
+  .n1-box .n1-name { font-size: 20px; font-weight: 900; margin-bottom: 8px; }
+  .n1-box .n1-detail { font-size: 13px; color: var(--text-sub); }
+  .n1-box .n1-insight {
+    margin-top: 12px; padding: 12px 16px;
+    background: rgba(0,0,0,.3); border-radius: 8px;
+    font-size: 12px; color: var(--accent2); font-style: italic;
+  }
+
+  /* Comparison boxes */
+  .compare-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+  @media (max-width: 700px) { .compare-row { grid-template-columns: 1fr; } }
+  .compare-box { padding: 20px; border-radius: 10px; }
+  .compare-box.before { background: rgba(255,107,107,.08); border: 1px solid rgba(255,107,107,.2); }
+  .compare-box.after { background: rgba(0,206,201,.08); border: 1px solid rgba(0,206,201,.2); }
+  .compare-box h5 { font-size: 11px; letter-spacing: 1px; margin-bottom: 8px; }
+  .compare-box.before h5 { color: var(--accent3); }
+  .compare-box.after h5 { color: var(--accent2); }
+  .compare-box p { font-size: 13px; color: var(--text-sub); }
+</style>
+</head>
+<body>
+
+<!-- ===== AUTH ===== -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <h2>Embedding 2.0 事例集</h2>
+    <p>閲覧にはパスワードが必要です</p>
+    <input type="password" id="pw-input" placeholder="パスワードを入力" autocomplete="off">
+    <button onclick="checkAuth()">閲覧する</button>
+    <div class="auth-error" id="auth-error">パスワードが違います</div>
+  </div>
+</div>
+
+<!-- ===== MAIN ===== -->
+<div id="main-content">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-badge">Studio Pak × AI × Marketing</div>
+    <h1><span>Embedding 2.0</span> 事例集</h1>
+    <p>Gemini Embedding + ベクトル空間 + クラスタリング。<br>2つの実験事例と、その根幹技術を紹介します。</p>
+  </div>
+
+  <!-- ================================ -->
+  <!-- CASE 1: SNSタイプ診断 -->
+  <!-- ================================ -->
+  <div class="section">
+    <div class="section-label"><div class="dot" style="background:var(--accent)"></div> CASE 01</div>
+    <h2>SNSタイプ診断 — 16タイプ</h2>
+    <p class="lead">HERO'ZZ × GMO NIKKO。4軸フレームワークで16のSNS人格を定義し、30問の診断で「あなたの武器と盾」を導き出す。</p>
+
+    <div class="case-card">
+      <h3>4軸フレームワーク</h3>
+      <p class="subtitle">ポジション × 提供価値 × 武器 × スタンス — 各軸2極で2⁴ = 16タイプ</p>
+
+      <div class="axis-row">
+        <div class="axis-item">
+          <div class="axis-label">Position</div>
+          <div class="axis-values"><span>FRONT</span> / SHADOW</div>
+        </div>
+        <div class="axis-item">
+          <div class="axis-label">Value</div>
+          <div class="axis-values"><span>PROFIT</span> / VISION</div>
+        </div>
+        <div class="axis-item">
+          <div class="axis-label">Weapon</div>
+          <div class="axis-values"><span>LOGIC</span> / EMOTION</div>
+        </div>
+        <div class="axis-item">
+          <div class="axis-label">Stance</div>
+          <div class="axis-values"><span>KING</span> / BUDDY</div>
+        </div>
+      </div>
+
+      <div class="type-grid">
+        <div class="type-cell"><span class="code">F-P-L-K</span><span class="name">皇帝</span></div>
+        <div class="type-cell"><span class="code">F-P-L-B</span><span class="name">ライフハッカー</span></div>
+        <div class="type-cell"><span class="code">F-P-E-K</span><span class="name">革命家</span></div>
+        <div class="type-cell"><span class="code">F-P-E-B</span><span class="name">スーパースター</span></div>
+        <div class="type-cell"><span class="code">F-V-L-K</span><span class="name">開拓者</span></div>
+        <div class="type-cell"><span class="code">F-V-L-B</span><span class="name">発明家</span></div>
+        <div class="type-cell"><span class="code">F-V-E-K</span><span class="name">メッセンジャー</span></div>
+        <div class="type-cell"><span class="code">F-V-E-B</span><span class="name">ムードメーカー</span></div>
+        <div class="type-cell"><span class="code">S-P-L-K</span><span class="name">戦略家</span></div>
+        <div class="type-cell"><span class="code">S-P-L-B</span><span class="name">観測者</span></div>
+        <div class="type-cell"><span class="code">S-P-E-K</span><span class="name">バズらせ屋</span></div>
+        <div class="type-cell"><span class="code">S-P-E-B</span><span class="name">ヒーラー</span></div>
+        <div class="type-cell"><span class="code">S-V-L-K</span><span class="name">マエストロ</span></div>
+        <div class="type-cell"><span class="code">S-V-L-B</span><span class="name">ゴーストライター</span></div>
+        <div class="type-cell"><span class="code">S-V-E-K</span><span class="name">ストーリーテラー</span></div>
+        <div class="type-cell"><span class="code">S-V-E-B</span><span class="name">詩人</span></div>
+      </div>
+    </div>
+
+    <div class="case-card">
+      <h3>N1ペルソナ × 体験設計</h3>
+      <p class="subtitle">「何すればいいかわからない」が最大のブロッカー → タイプ診断で壁を崩す</p>
+
+      <div class="n1-box">
+        <h4>PRIMARY N1</h4>
+        <div class="n1-name">さとるくん（27歳・会社員・年収430万）</div>
+        <div class="n1-detail">副業・FIRE志向だが「何すればいいかわからない」で止まっている。SNS副業は「一握りでしょ」と除外しているが、「伸びたら稼げるんだろうな」とは思っている。</div>
+        <div class="n1-insight">「よくわからないから除外」≠ 興味がない。タイプ診断で「あなたに合う方法がある」と示せたら、壁が崩れる。</div>
+      </div>
+
+      <div class="compare-row">
+        <div class="compare-box before">
+          <h5>BEFORE（既存認知）</h5>
+          <p>SNS副業は一握りの才能ある人だけのもの。何をしたらいいかわからない。自分には無理。</p>
+        </div>
+        <div class="compare-box after">
+          <h5>AFTER（新認知）</h5>
+          <p>自分にはSNSの「型」があった。自分の武器を知れば、SNSで稼ぐ道が見えた。</p>
+        </div>
+      </div>
+
+      <div class="tags">
+        <span class="tag">Squad Beyond</span>
+        <span class="tag teal">LINE連携</span>
+        <span class="tag pink">30問診断</span>
+        <span class="tag gold">武器カード × 盾カード</span>
+      </div>
+    </div>
+
+    <div class="case-card">
+      <h3>Embedding活用ポイント</h3>
+      <p class="subtitle">診断結果の「深い心理描写」をEmbeddingで生成・品質担保</p>
+
+      <div class="info-grid">
+        <div class="info-box">
+          <h4>16タイプの心理テキスト</h4>
+          <p>各タイプ約1,200文字の深い心理描写（根本的なあなた + 3つの強み + 3つの罠 + 戦略スタイル + 武器カード・盾カード）を、strategy.jsonの4軸定義からベクトル的に整合性を保って生成。</p>
+        </div>
+        <div class="info-box">
+          <h4>ブランドガード</h4>
+          <p>strategy.jsonにmustInclude/neverSay/complianceを定義。「絶対稼げる」「月収○○万確定」等の禁止表現をゲートで排除。</p>
+        </div>
+        <div class="info-box">
+          <h4>コンセプト仮説5本</h4>
+          <p>「タイプ発見」「ミスマッチ証明」「隠れた才能」「お金×エンタメ」「副業迷子救済」— 各アングルにLv2/Lv3のコンセプト強度を設定。</p>
+        </div>
+        <div class="info-box">
+          <h4>3層ターゲティング</h4>
+          <p>潜在層（SNS副業に無関心）→ 準顕在層（副業興味あるが迷子）→ 顕在層（SNSやってるが伸びない）で、フック・メッセージを変える。</p>
+        </div>
+      </div>
+    </div>
+    <!-- Gallery: SNSタイプ診断バナー -->
+    <div class="case-card" id="gallery-herozz">
+      <h3>バナー A/B/C 比較ギャラリー</h3>
+      <p class="subtitle">10枚 × 3パターン = 30枚。nano-banana-pro-preview生成</p>
+
+      <div class="gallery-controls">
+        <button class="gallery-btn active" onclick="showGallery('herozz','a',this)">A: No Embedding</button>
+        <button class="gallery-btn" onclick="showGallery('herozz','b',this)">B: Embedding 1.0</button>
+        <button class="gallery-btn" onclick="showGallery('herozz','c',this)">C: Embedding 2.0</button>
+        <button class="gallery-btn compare-btn" onclick="showGalleryCompare('herozz',this)">横並び比較</button>
+      </div>
+      <div class="gallery-desc" id="herozz-desc">DProデータ参照なし。strategy.jsonの商材情報のみで自由に生成。AIの純粋な創造力。</div>
+      <div id="herozz-gallery"></div>
+    </div>
+
+  </div>
+
+  <hr class="divider">
+
+  <!-- ================================ -->
+  <!-- CASE 2: マーケティング適性テスト -->
+  <!-- ================================ -->
+  <div class="section">
+    <div class="section-label"><div class="dot" style="background:var(--accent2)"></div> CASE 02</div>
+    <h2>マーケティング適性テスト</h2>
+    <p class="lead">1stBLN自社事業。実際の広告配信データ（DPro）に基づく20問の適性診断。<br>「心の炎を大きくする」— マーケティングの入口。</p>
+
+    <div class="case-card">
+      <h3>DPro × Embedding 2.0 = テスト問題自動生成</h3>
+      <p class="subtitle">市場で実際に「勝った」広告コピーをEmbeddingで分析し、テスト問題を自動生成するパイプライン</p>
+
+      <div class="flow-diagram">
+        <div class="flow-step">
+          <div class="flow-num">1</div>
+          <div>DPro APIで8〜10ジャンルの広告データ取得（転職/副業/スキンケア/ダイエット等）</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num teal">2</div>
+          <div>cost_difference 3倍以上の差があるA/Bペアを自動抽出</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num pink">3</div>
+          <div>Gemini Embedding でコピーをベクトル化 → 「何が刺さったか」をクラスタリング</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num gold">4</div>
+          <div>クラスタ代表コンセプトから「コピー対決」問題を生成</div>
+        </div>
+      </div>
+
+      <div class="n1-box">
+        <h4>PRIMARY N1</h4>
+        <div class="n1-name">フォロワーマーケター</div>
+        <div class="n1-detail">"自分、マーケティング向いてる気がする"と思う"まだ、マーケターではない人"。年収400〜600万。発想力を持て余している。好奇心旺盛で、愛がある人。</div>
+        <div class="n1-insight">「テーマ待ち。お題くれたら、私、すごいよ」— テストがそのお題になる。</div>
+      </div>
+    </div>
+
+    <div class="case-card">
+      <h3>2つの実験</h3>
+      <p class="subtitle">DProコピー対決 と エンベディングバナー効果検証</p>
+
+      <div class="info-grid">
+        <div class="info-box">
+          <h4>実験A: コピー対決編</h4>
+          <p>DProの実データから、cost_differenceに3倍以上の差がある2つの広告コピーを提示。「どっちが売れた？」を当てるゲーム形式。マーケターの直感を可視化。</p>
+          <span class="highlight" style="margin-top:12px">深海 → 宇宙</span>
+          <p>世界観: どんどん深海に潜るイメージ。深海の先に宇宙がある。</p>
+        </div>
+        <div class="info-box">
+          <h4>実験B: エンベディング効果研究</h4>
+          <p>同一コンセプトのバナーを3パターンで生成:<br>
+          <strong>Pattern A</strong> — 爆発力（短期投資集中度）<br>
+          <strong>Pattern B</strong> — 持続力（長期配信信頼性）<br>
+          <strong>Pattern C</strong> — 複合スコア<br>
+          各パターンのベクトル空間上の位置づけを比較。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="case-card">
+      <h3>プロダクト構成</h3>
+      <p class="subtitle">neko株式会社 × スタジオパク。フルAIネイティブチーム構想</p>
+      <div class="tags">
+        <span class="tag">Figma</span>
+        <span class="tag teal">Netlify</span>
+        <span class="tag pink">WordPress + GAS</span>
+        <span class="tag gold">LINE連携</span>
+        <span class="tag">20問診断</span>
+        <span class="tag teal">スポンサー企業11社候補</span>
+      </div>
+      <div class="info-grid" style="margin-top:16px">
+        <div class="info-box">
+          <h4>ビジネスモデル</h4>
+          <p>スポンサー企業がBefore/Afterクリエイティブ+数値改善データを提供 → テスト問題に組み込み → リード獲得 → M-DIVE/記事LP-DIVEへ送客</p>
+        </div>
+        <div class="info-box">
+          <h4>Open Claw導入</h4>
+          <p>1業務機能 = 1体のAI = 1自己学習ループ。デザイン/開発/マーケ/運営それぞれにOpen Claw配置。人間は承認のみ。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gallery: マーケティング適性テスト バナー -->
+    <div class="case-card" id="gallery-tekisei">
+      <h3>バナー A/B/C 比較ギャラリー</h3>
+      <p class="subtitle">10枚 × 3パターン = 30枚。同じコンセプトで3段階のEmbedding活用度を比較</p>
+
+      <div class="gallery-controls">
+        <button class="gallery-btn active" onclick="showGallery('tekisei','a',this)">A: No Embedding</button>
+        <button class="gallery-btn" onclick="showGallery('tekisei','b',this)">B: Embedding 1.0</button>
+        <button class="gallery-btn" onclick="showGallery('tekisei','c',this)">C: Embedding 2.0</button>
+        <button class="gallery-btn compare-btn" onclick="showGalleryCompare('tekisei',this)">横並び比較</button>
+      </div>
+      <div class="gallery-desc" id="tekisei-desc">DProデータ参照なし。商材情報（適性テスト、20問、深海→宇宙世界観、N1「フォロワーマーケター」）だけでAIが自由に生成。</div>
+      <div id="tekisei-gallery"></div>
+    </div>
+
+  </div>
+
+  <hr class="divider">
+
+  <!-- ================================ -->
+  <!-- TECH: Embedding 2.0 Pipeline -->
+  <!-- ================================ -->
+  <div class="section">
+    <div class="section-label"><div class="dot" style="background:var(--accent3)"></div> TECHNOLOGY</div>
+    <h2>Embedding 2.0 パイプライン</h2>
+    <p class="lead">Gemini Embedding → PCA次元圧縮 → K-Means最適化 → 階層的クラスタマージ。<br>広告クリエイティブの「認知マップ」を自動生成する技術基盤。</p>
+
+    <div class="case-card">
+      <h3>5段階パイプライン</h3>
+      <p class="subtitle">embedding_pipeline.py v1.1 — Phase 2 of 完全自走AIアーキテクチャ</p>
+
+      <div class="pipeline">
+        <div class="pipeline-step highlight-step">DPro API</div>
+        <span class="pipeline-arrow">→</span>
+        <div class="pipeline-step">Phase 1: 6パターンスコアリング</div>
+        <span class="pipeline-arrow">→</span>
+        <div class="pipeline-step highlight-step">Gemini Embedding (3072dim)</div>
+        <span class="pipeline-arrow">→</span>
+        <div class="pipeline-step">PCA (→256dim)</div>
+        <span class="pipeline-arrow">→</span>
+        <div class="pipeline-step">K-Means最適化</div>
+        <span class="pipeline-arrow">→</span>
+        <div class="pipeline-step">階層的マージ</div>
+        <span class="pipeline-arrow">→</span>
+        <div class="pipeline-step highlight-step">認知マップ</div>
+      </div>
+
+      <div class="code-block">
+<span class="comment"># v1.0→v1.1の改善</span>
+<span class="keyword">PCA</span>: <span class="number">3072</span>→<span class="number">256</span>次元（次元の呪い解消）
+<span class="keyword">k_max</span>: min(n_items/<span class="number">5</span>, <span class="number">12</span>)  <span class="comment"># 過分割防止</span>
+<span class="keyword">merge</span>: centroid cos_sim > <span class="number">0.90</span> → 自動統合
+<span class="keyword">結果</span>: 高類似ペア v1.0=多数 → v1.1=<span class="string">ゼロ</span>
+      </div>
+    </div>
+
+    <div class="case-card">
+      <h3>4ジャンル検証結果</h3>
+      <p class="subtitle">パイプラインのジャンル横断再現性を確認</p>
+
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th>ジャンル</th>
+            <th>件数</th>
+            <th>クラスタ数</th>
+            <th>Silhouette</th>
+            <th>高類似ペア</th>
+            <th>A∩B重複率</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>スキンケア</td>
+            <td class="mono">41</td>
+            <td class="mono">9</td>
+            <td class="mono score">0.353</td>
+            <td class="mono good">0</td>
+            <td class="mono">36%</td>
+          </tr>
+          <tr>
+            <td>ダイエットサプリ</td>
+            <td class="mono">80</td>
+            <td class="mono">12</td>
+            <td class="mono score">0.404</td>
+            <td class="mono good">0</td>
+            <td class="mono">46%</td>
+          </tr>
+          <tr>
+            <td>BtoB (ビジネスサービス)</td>
+            <td class="mono">80</td>
+            <td class="mono">12</td>
+            <td class="mono score">0.247</td>
+            <td class="mono good">0</td>
+            <td class="mono">28%</td>
+          </tr>
+          <tr>
+            <td>BtoB (実験)</td>
+            <td class="mono">—</td>
+            <td class="mono">—</td>
+            <td class="mono score">0.513</td>
+            <td class="mono">—</td>
+            <td class="mono">—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="case-card">
+      <h3>6パターンスコアリング</h3>
+      <p class="subtitle">「本当にコンセプトが刺さって売れている」クリエイティブを検出する6つの仮説</p>
+
+      <div class="info-grid">
+        <div class="info-box">
+          <h4>Pattern A: 爆発力</h4>
+          <p><span class="mono">cost_difference / streaming_period_days</span><br>短期爆発 = 市場が即座に認めた</p>
+        </div>
+        <div class="info-box">
+          <h4>Pattern B: 持続力</h4>
+          <p><span class="mono">streaming_period × (cost_diff / top20_avg)</span><br>長期配信 = CPAが安定的に合っている</p>
+        </div>
+        <div class="info-box">
+          <h4>Pattern C: 拡散力</h4>
+          <p><span class="mono">digg_count_diff / play_count_diff</span><br>見た人のアクション率（video専用）</p>
+        </div>
+        <div class="info-box">
+          <h4>Pattern D: 横展開力</h4>
+          <p><span class="mono">active_platforms × cross_cost_ratio</span><br>複数PF展開 = 勝ちCRの証拠</p>
+        </div>
+        <div class="info-box">
+          <h4>Pattern E: コンセプト効率</h4>
+          <p><span class="mono">item_cost_diff / product_max_cost_diff</span><br>商材内A/Bテストの勝者</p>
+        </div>
+        <div class="info-box">
+          <h4>Pattern F: 複合スコア</h4>
+          <p>A〜E の加重平均。banner用/video用で重み分離。<br><strong>推奨パターン</strong></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="case-card">
+      <h3>致命的な発見</h3>
+      <p class="subtitle">実験から得られた構造的な学び</p>
+
+      <div class="info-grid">
+        <div class="info-box">
+          <h4>Pattern A/B分離がクラスタレベルで機能</h4>
+          <p>爆発力TOP50と持続力TOP50の重複率はわずか36%。2つの軸は独立した情報を持ち、別々に分析する価値がある。</p>
+        </div>
+        <div class="info-box">
+          <h4>最強コンセプト構造の条件</h4>
+          <p>「成分名訴求 × UGCレビュー × 具体悩み」構造は爆発力と持続力の両方を持つ。この構造は他ジャンルに転用可能。</p>
+        </div>
+        <div class="info-box">
+          <h4>ベクトル空間のスイートスポット</h4>
+          <p class="mono" style="margin-top:8px">
+            cos_sim 0.7〜0.85 = 刺さる＆差別化あり<br>
+            cos_sim 0.85〜1.0 = レッドオーシャン<br>
+            cos_sim &lt; 0.5 = 市場性不明
+          </p>
+        </div>
+        <div class="info-box">
+          <h4>バリュエーションデータ = コアコンピタンス</h4>
+          <p>「仮説 × スコアリング × 結果」の三つ組はループを回さないと手に入らない。データの量ではなく「判断の累積」が競争優位。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ================================ -->
+  <!-- LOOP Architecture -->
+  <!-- ================================ -->
+  <div class="section">
+    <div class="section-label"><div class="dot" style="background:var(--gold)"></div> ARCHITECTURE</div>
+    <h2>完全自走ループ</h2>
+    <p class="lead">DPro → スコアリング → Embedding → コンセプト設計 → クリエイティブ制作 → 配信 → 検証 → ループ</p>
+
+    <div class="case-card">
+      <div class="flow-diagram" style="max-width:100%">
+        <div class="flow-step">
+          <div class="flow-num">1</div>
+          <div><strong>DPro → スコアリング → 既存認知ベクトル空間</strong><br><span style="font-size:12px;color:var(--text-sub)">市場で売れている広告の認知マップを構築</span></div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num teal">2</div>
+          <div><strong>X等の外部データ → 新認知仮説</strong><br><span style="font-size:12px;color:var(--text-sub)">まだ広告で使われていないが、需要に刺さりそうな認知</span></div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num pink">3</div>
+          <div><strong>既存認知空間 × 新認知仮説 → コンセプト設計</strong><br><span style="font-size:12px;color:var(--text-sub)">cos_sim 0.7〜0.85のスイートスポットを狙う</span></div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num gold">4</div>
+          <div><strong>コンセプト → 広告クリエイティブ制作</strong><br><span style="font-size:12px;color:var(--text-sub)">Banner Park / ShortAd Park / ArticleLP Park</span></div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">5</div>
+          <div><strong>配信 → 実績データ取得</strong><br><span style="font-size:12px;color:var(--text-sub)">Meta / DPro フィードバックループ</span></div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num teal">6</div>
+          <div><strong>仮説検証 → バリュエーションデータ蓄積 → [1] に戻る</strong><br><span style="font-size:12px;color:var(--text-sub)">ループで溜まる「仮説×実績」= 他者が絶対に真似できないコアコンピタンス</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p>Embedding 2.0 事例集 — Studio Pak Confidential</p>
+    <p style="margin-top:4px">Generated by AIパク | 2026-03-12</p>
+  </div>
+
+</div>
+
+<!-- Lightbox -->
+<div class="lb-overlay" id="lb-overlay" onclick="lbClose(event)">
+  <div class="lb-nav prev" onclick="lbNav(-1)">&#8249;</div>
+  <div class="lb-nav next" onclick="lbNav(1)">&#8250;</div>
+  <img id="lb-img" src="">
+  <div class="lb-info" id="lb-info"></div>
+</div>
+
+<script>
+// ===== Auth =====
+const HASH = 'fba94bc7ecf4ea4c03d4d988cbfd195fedb12664b532b6513e3af52191a95c3c';
+
+async function sha256(text) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(text);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function checkAuth() {
+  const pw = document.getElementById('pw-input').value;
+  const hash = await sha256(pw);
+  if (hash === HASH) {
+    document.getElementById('auth-screen').classList.add('hidden');
+    document.getElementById('main-content').classList.add('visible');
+    sessionStorage.setItem('emb2-auth', '1');
+  } else {
+    document.getElementById('auth-error').style.display = 'block';
+    document.getElementById('pw-input').value = '';
+  }
+}
+
+document.getElementById('pw-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') checkAuth();
+});
+
+if (sessionStorage.getItem('emb2-auth') === '1') {
+  document.getElementById('auth-screen').classList.add('hidden');
+  document.getElementById('main-content').classList.add('visible');
+}
+
+// ===== Gallery Data =====
+const GALLERY = {
+  herozz: {
+    basePath: 'herozz',
+    count: 10,
+    descriptions: {
+      a: 'DProデータ参照なし。strategy.jsonの商材情報のみで自由に生成。AIの純粋な創造力。',
+      b: 'DPro勝ちCRの「表面パターン」を直接転用。フック文言の型・数字の使い方・コピー構造をそのまま適用。',
+      c: 'DPro勝ちCRの「深層構造」を翻訳。心理メカニズム（除外解除・同一化・苦痛言語化等）を構造レベルで移植。'
+    },
+    labels: {
+      a: ['タイプ発見型','皇帝キャラ全面型','カードゲーム型','副業迷子救済型','30問チャレンジ型','ダーク世界観型','面談訴求型','ミスマッチ型','エンタメ型','権威型'],
+      b: ['会社員だった俺でも型','何すればいいかわからない型','たった30問で型','未経験でもOK型','正社員しながら型','パソコン苦手でも型','ビフォーアフター型','今だけ無料型','ノースキルだけど型','2時間で変わる型'],
+      c: ['除外解除×タイプ多様性','同一化×変容体験','具体未来×発信','苦痛言語化×時間浪費','既存資産再発見','段階的近接化','ミスマッチ×構造問題','好奇心トラップ×タイプ名','感情シーケンス設計','世界観没入×バトル']
+    }
+  },
+  tekisei: {
+    basePath: 'tekisei',
+    count: 10,
+    descriptions: {
+      a: 'DProデータ参照なし。商材情報（適性テスト、20問、深海→宇宙世界観、N1「フォロワーマーケター」）だけでAIが自由に生成。',
+      b: 'DPro勝ちCR（ウェブフリ「高卒でPCなかった俺でも」、リクルート「このままでいいのかな」、リモラボ「適職診断」等）の言い回し・数字・構造をそのまま転用。',
+      c: '同じDPro勝ちCRから「なぜ効くか」の心理メカニズム（除外解除、同一化、苦痛言語化、既存資産再発見、段階的近接化、問いのリフレーム）を抽出し、適性テスト文脈に翻訳。'
+    },
+    labels: {
+      a: ['20問チャレンジ型','炎コンセプト型','深海→宇宙型','スコアボード型','タイプ分類型','問題プレビュー型','SIGNAL型','LINE結果配信型','退屈な仕事型','Tシャツ特典型'],
+      b: ['○○だった俺でも型','何がしたいかわからない型','たった20問で型','未経験でもOK型','このままでいいのかな型','正社員しながら型','適職診断型','ビフォーアフター型','Netflixの2時間型','隠れた強み発見型'],
+      c: ['除外解除×才能多様性','同一化×変容体験','具体未来×日常変化','苦痛言語化×才能の持て余し','既存資産再発見','段階的近接化','問いのリフレーム','好奇心トラップ×問題体験','感情シーケンス設計','世界観没入×深海探索']
+    }
+  }
+};
+
+// Track lightbox images per gallery
+let lbImages = [];
+let lbIdx = 0;
+
+function showGallery(id, tab, btn) {
+  const g = GALLERY[id];
+  const container = document.getElementById(id + '-gallery');
+  const desc = document.getElementById(id + '-desc');
+
+  // Active button
+  btn.closest('.gallery-controls').querySelectorAll('.gallery-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  desc.textContent = g.descriptions[tab];
+
+  // Build images list for lightbox
+  lbImages = [];
+  let html = '<div class="gallery-grid">';
+  for (let i = 1; i <= g.count; i++) {
+    const num = String(i).padStart(2, '0');
+    const src = `${g.basePath}/pattern-${tab}/${tab}-${num}.png`;
+    const label = g.labels[tab][i-1];
+    const idx = lbImages.length;
+    lbImages.push({ src, label: `${tab.toUpperCase()}-${num}: ${label}` });
+    html += `<div class="gallery-card" onclick="lbOpen(${idx})">
+      <img src="${src}" loading="lazy" alt="${label}">
+      <div class="gallery-card-label"><strong>${tab.toUpperCase()}-${num}</strong> ${label}</div>
+    </div>`;
+  }
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function showGalleryCompare(id, btn) {
+  const g = GALLERY[id];
+  const container = document.getElementById(id + '-gallery');
+  const desc = document.getElementById(id + '-desc');
+
+  btn.closest('.gallery-controls').querySelectorAll('.gallery-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  desc.textContent = '同じ番号のA/B/Cを横に並べて比較。クリックで拡大。';
+
+  // Build all images for lightbox
+  lbImages = [];
+  ['a','b','c'].forEach(tab => {
+    for (let i = 1; i <= g.count; i++) {
+      const num = String(i).padStart(2, '0');
+      lbImages.push({
+        src: `${g.basePath}/pattern-${tab}/${tab}-${num}.png`,
+        label: `${tab.toUpperCase()}-${num}: ${g.labels[tab][i-1]}`
+      });
+    }
+  });
+
+  let html = `<div class="gallery-compare-header">
+    <div class="gcol-title a">A: No Embedding</div>
+    <div class="gcol-title b">B: Embedding 1.0</div>
+    <div class="gcol-title c">C: Embedding 2.0</div>
+  </div>`;
+
+  for (let i = 0; i < g.count; i++) {
+    const num = String(i+1).padStart(2, '0');
+    const idxA = i, idxB = g.count + i, idxC = g.count * 2 + i;
+    html += `<div class="gallery-compare-row">
+      <div class="grow-num">── #${num} ──</div>
+      <div class="gallery-compare-cell" onclick="lbOpen(${idxA})">
+        <img src="${g.basePath}/pattern-a/a-${num}.png" loading="lazy">
+        <div class="gcell-label"><em>A-${num}</em> ${g.labels.a[i]}</div>
+      </div>
+      <div class="gallery-compare-cell" onclick="lbOpen(${idxB})">
+        <img src="${g.basePath}/pattern-b/b-${num}.png" loading="lazy">
+        <div class="gcell-label"><em>B-${num}</em> ${g.labels.b[i]}</div>
+      </div>
+      <div class="gallery-compare-cell" onclick="lbOpen(${idxC})">
+        <img src="${g.basePath}/pattern-c/c-${num}.png" loading="lazy">
+        <div class="gcell-label"><em>C-${num}</em> ${g.labels.c[i]}</div>
+      </div>
+    </div>`;
+  }
+  container.innerHTML = html;
+}
+
+// ===== Lightbox =====
+function lbOpen(idx) {
+  lbIdx = idx;
+  const item = lbImages[idx];
+  document.getElementById('lb-img').src = item.src;
+  document.getElementById('lb-info').textContent = item.label;
+  document.getElementById('lb-overlay').classList.add('open');
+}
+
+function lbClose(e) {
+  if (e.target === document.getElementById('lb-overlay')) {
+    document.getElementById('lb-overlay').classList.remove('open');
+  }
+}
+
+function lbNav(dir) {
+  lbIdx = (lbIdx + dir + lbImages.length) % lbImages.length;
+  lbOpen(lbIdx);
+  event.stopPropagation();
+}
+
+document.addEventListener('keydown', e => {
+  const lb = document.getElementById('lb-overlay');
+  if (!lb.classList.contains('open')) return;
+  if (e.key === 'Escape') lb.classList.remove('open');
+  if (e.key === 'ArrowLeft') { lbNav(-1); e.preventDefault(); }
+  if (e.key === 'ArrowRight') { lbNav(1); e.preventDefault(); }
+});
+
+// Init galleries with Pattern A
+showGallery('herozz', 'a', document.querySelector('#gallery-herozz .gallery-btn'));
+showGallery('tekisei', 'a', document.querySelector('#gallery-tekisei .gallery-btn'));
+</script>
+
+</body>
+</html>
